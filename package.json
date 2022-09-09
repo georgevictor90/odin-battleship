@@ -1,0 +1,31 @@
+{
+  "name": "odin-battleship",
+  "version": "1.0.0",
+  "description": "The Odin Project - Unit Testing Project - Implement the classic game ‘Battleship’",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "webpack serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgevictor90/odin-battleship.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/georgevictor90/odin-battleship/issues"
+  },
+  "homepage": "https://github.com/georgevictor90/odin-battleship#readme",
+  "devDependencies": {
+    "@babel/preset-env": "^7.19.0",
+    "css-loader": "^6.7.1",
+    "html-webpack-plugin": "^5.5.0",
+    "jest": "^29.0.2",
+    "style-loader": "^3.3.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.0"
+  }
+}

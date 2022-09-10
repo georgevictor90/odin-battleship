@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "The Odin Project - Unit Testing Project - Implement the classic game ‘Battleship’",
   "main": "index.js",
+  "private": true,
   "scripts": {
     "test": "jest",
     "build": "webpack serve"

@@ -6,7 +6,7 @@ export default class Ship {
     this.hits = [];
     this.head = head;
     this.position = [];
-    this.setPos();
+    this.#setPos();
   }
   hit(pos) {
     let found = false;
@@ -29,7 +29,7 @@ export default class Ship {
     return true;
   }
 
-  setPos() {
+  #setPos() {
     if (!this.orientation) throw new Error("No ship orientation specified");
     this.position.push(this.head);
     if (this.orientation === "horizontal") {

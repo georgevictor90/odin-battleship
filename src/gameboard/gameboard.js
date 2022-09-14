@@ -15,12 +15,12 @@ export default class Gameboard {
     }
     return rows;
   }
-  placeShip(head, shipType, orientation) {
-    if (orientation === "horizontal" && 10 - head[0] < shipType.size)
-      throw new Error("Outside Board horizontal");
+  placeShip(head, shipType, orientation, name) {
+    // if (orientation === "horizontal" && 10 - head[0] < shipType.size)
+    //   throw new Error("Outside Board horizontal");
 
-    if (orientation === "vertical" && 10 - head[1] < shipType.size)
-      throw new Error("Outside Board vertical");
+    // if (orientation === "vertical" && 10 - head[1] < shipType.size)
+    //   throw new Error("Outside Board vertical");
 
     let ship = new Ship(shipType, head, orientation);
 
@@ -30,6 +30,17 @@ export default class Gameboard {
       this.spaces[p[1]][p[0]] = ship.name.charAt(0);
     });
 
+    // console.log("position " + ship.position);
+    ship.position.forEach((pos) => {
+      // console.log(document.getElementById(`${pos[0]}, ${pos[1]}`));
+      if (document.getElementById(`${name}, ${pos[0]}, ${pos[1]}`) === null) {
+        console.log([pos[0], pos[1]]);
+      } else {
+        document
+          .getElementById(`${name}, ${pos[0]}, ${pos[1]}`)
+          .classList.toggle("selected");
+      }
+    });
     this.ships.push(ship);
   }
 

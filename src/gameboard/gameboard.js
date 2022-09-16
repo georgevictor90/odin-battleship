@@ -132,13 +132,13 @@ export default class Gameboard {
   }
 
   filterReserved(unfilteredArray) {
-    console.log(unfilteredArray);
+    // console.log(unfilteredArray);
     let filtered = [];
 
     filtered = unfilteredArray.filter(
       (arr) => arr[0] >= 0 && arr[0] <= 9 && arr[1] >= 0 && arr[1] <= 9
     );
-    console.log(filtered);
+    // console.log(filtered);
     return filtered;
   }
 

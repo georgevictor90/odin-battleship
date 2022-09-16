@@ -1,3 +1,5 @@
+//render player's gameboards on screen
+
 export default function renderGameBoards(players) {
   players.forEach((p) => {
     const boardsContainer = document.querySelector(".boards");

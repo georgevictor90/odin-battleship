@@ -7,6 +7,7 @@ function placeRandomShips(players) {
   let orientations = ["horizontal", "vertical"];
 
   players.forEach((p) => {
+    //For each type of ship generate random valid coordinates
     for (const key in shipTypes) {
       do {
         x = getRandomIntInclusive(0, 9);
@@ -15,6 +16,7 @@ function placeRandomShips(players) {
       } while (
         !isValidPosition([x, y], shipTypes[key], orientations[z], p.gameboard)
       );
+      //and then store the ships positions in player gameboard
       p.gameboard.placeShip([x, y], shipTypes[key], orientations[z], p.name);
     }
   });
@@ -35,7 +37,7 @@ function isValidPosition(head, type, orientation, gameboard) {
   positions.push(head);
 
   if (orientation === "horizontal") {
-    //is ship outside board
+    //ship outside board
     if (10 - head[0] < type.size) {
       bool = false;
     } else {
@@ -46,7 +48,7 @@ function isValidPosition(head, type, orientation, gameboard) {
       bool = true;
     }
   } else if (orientation === "vertical") {
-    //is ship outside board
+    //ship outside board
     if (10 - head[1] < type.size) {
       bool = false;
     } else {

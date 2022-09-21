@@ -75,6 +75,10 @@ export default class Gameboard {
     return this.ships.every((x) => x.isSunk() === true);
   }
 
+  getSunkShips() {
+    return this.ships.filter((ship) => ship.isSunk());
+  }
+
   unfilteredReservedSpaces(positionsArray, orientation) {
     //store head and tail of a ship in variables
     const h = positionsArray[0];

@@ -17,15 +17,42 @@ export default function renderGameBoards(players) {
         playerBoard.appendChild(cell);
         if (p.type === "AI") {
           cell.addEventListener("click", () => {
+            //// if attack is hit , get sunk ships, check if all sunk (yes => gameover, no => get another turn)
+            ///else pass the turn to the opponent and repeat
+
             //HANDLE ATTACKS
 
             let x = Number(cell.id.charAt(0));
             let y = Number(cell.id.charAt(2));
             //attack gameboard on click coords
             p.opponent.attack([x, y]);
+
             //render attack on board
             cell.textContent = row[i] === "miss" ? "\u{26AC}" : "\u{2717}";
             if (row[i] !== "miss") cell.classList.add("hit");
+
+            let cpuSunkShips = p.gameboard.getSunkShips();
+            console.log(cpuSunkShips);
+
+            cpuSunkShips.forEach((ship) => {
+              //get the coords
+              ship.position.forEach((pos) => {
+                //access the cells with id containing coords
+                let cell = document.getElementById(
+                  `${pos[0]},${pos[1]} ${p.name}`
+                );
+                //add class to the cells
+                cell.classList.add("sunk");
+              });
+            });
+
+            //check if all cpu ships are sunk
+            if (p.gameboard.allSunk()) {
+              setTimeout(function () {
+                alert("game over");
+              }, 0);
+            }
+
             //CPU random attacks human player
             let cpuAttackCoords = p.randomAttack();
             renderCPUAttack(p, cpuAttackCoords);

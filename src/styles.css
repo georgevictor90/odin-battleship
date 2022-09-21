@@ -104,3 +104,8 @@ h1 {
   color: red;
   font-size: 1.5rem;
 }
+
+.sunk {
+  background: red !important;
+  color: white !important;
+}

@@ -23,14 +23,18 @@ export default class Gameboard {
     ship.position.slice(1).forEach((p) => {
       this.spaces[p[1]][p[0]] = ship.name.charAt(0);
     });
-    ship.position.forEach((pos) => {
-      if (document.getElementById(`${name}, ${pos[0]}, ${pos[1]}`) === null) {
-      } else {
-        document
-          .getElementById(`${name}, ${pos[0]}, ${pos[1]}`)
-          .classList.toggle("selected");
-      }
-    });
+
+    if (name !== "CPU") {
+      ship.position.forEach((pos) => {
+        if (document.getElementById(`${pos[0]},${pos[1]} ${name}`) === null) {
+          return;
+        } else {
+          document
+            .getElementById(`${pos[0]},${pos[1]} ${name}`)
+            .classList.toggle("selected");
+        }
+      });
+    }
     this.ships.push(ship);
     this.handleReservedSpaces(ship);
   }
@@ -45,10 +49,12 @@ export default class Gameboard {
   }
 
   receiveAttack(coords) {
+    // debugger;
+    // console.log(coords);
     let target = this.spaces[coords[1]][coords[0]];
 
     if (target === "miss") return;
-    if (target === null) {
+    if (target === null || target === "r") {
       this.spaces[coords[1]][coords[0]] = "miss";
       this.targetsMissed.push([...coords]);
     } else {
@@ -62,6 +68,7 @@ export default class Gameboard {
       ship.hit(coords);
       this.spaces[coords[1]][coords[0]] += " hit";
     }
+    // console.table(this.spaces);
   }
 
   allSunk() {

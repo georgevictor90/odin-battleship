@@ -17,18 +17,25 @@ export class Player {
 export class ComputerPlayer extends Player {
   name = "CPU";
   type = "AI";
+
   randomAttack() {
-    this.attack(this.#getRandomCoords());
+    let coords = this.#getRandomCoords();
+    this.attack(coords);
+    return [...coords];
   }
 
-  #getRandomCoords() {
+  #getRandomCoords(result = []) {
     let x = this.#getRandomIntInclusive(0, 9);
     let y = this.#getRandomIntInclusive(0, 9);
-    if (this.opponent.gameboard.spaces[y][x] === null) {
-      return [x, y];
-    } else {
-      this.#getRandomCoords();
-    }
+    if (
+      this.opponent.gameboard.spaces[y][x] === "miss" ||
+      (this.opponent.gameboard.spaces[y][x] !== null &&
+        this.opponent.gameboard.spaces[y][x].includes("hit"))
+    )
+      this.#getRandomCoords(result);
+
+    result.push(x, y);
+    return result;
   }
 
   // From MDN docs

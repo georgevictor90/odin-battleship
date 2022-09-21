@@ -20,6 +20,7 @@ function placeRandomShips(players) {
       p.gameboard.placeShip([x, y], shipTypes[key], orientations[z], p.name);
     }
   });
+  // console.table(players[1].gameboard.spaces);
 }
 
 function makePlayers(name = "Player") {

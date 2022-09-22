@@ -49,8 +49,6 @@ export default class Gameboard {
   }
 
   receiveAttack(coords) {
-    // debugger;
-    // console.log(coords);
     let target = this.spaces[coords[1]][coords[0]];
 
     if (target === "miss") return;

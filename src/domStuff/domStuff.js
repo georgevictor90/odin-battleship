@@ -17,45 +17,8 @@ export default function renderGameBoards(players) {
         playerBoard.appendChild(cell);
         if (p.type === "AI") {
           cell.addEventListener("click", () => {
-            //// if attack is hit , get sunk ships, check if all sunk (yes => gameover, no => get another turn)
-            ///else pass the turn to the opponent and repeat
-
-            //HANDLE ATTACKS
-
-            let x = Number(cell.id.charAt(0));
-            let y = Number(cell.id.charAt(2));
-            //attack gameboard on click coords
-            p.opponent.attack([x, y]);
-
-            //render attack on board
-            cell.textContent = row[i] === "miss" ? "\u{26AC}" : "\u{2717}";
-            if (row[i] !== "miss") cell.classList.add("hit");
-
-            let cpuSunkShips = p.gameboard.getSunkShips();
-            console.log(cpuSunkShips);
-
-            cpuSunkShips.forEach((ship) => {
-              //get the coords
-              ship.position.forEach((pos) => {
-                //access the cells with id containing coords
-                let cell = document.getElementById(
-                  `${pos[0]},${pos[1]} ${p.name}`
-                );
-                //add class to the cells
-                cell.classList.add("sunk");
-              });
-            });
-
-            //check if all cpu ships are sunk
-            if (p.gameboard.allSunk()) {
-              setTimeout(function () {
-                alert("game over");
-              }, 0);
-            }
-
-            //CPU random attacks human player
-            let cpuAttackCoords = p.randomAttack();
-            renderCPUAttack(p, cpuAttackCoords);
+            // console.log(row[i]);
+            playRound(p.opponent, cell, row[i]);
           });
         }
       }
@@ -63,7 +26,8 @@ export default function renderGameBoards(players) {
   });
 }
 
-function renderCPUAttack(p, coords) {
+function renderCPUAttack(p, coords, targetStatus) {
+  // console.log({ targetStatus: targetStatus });
   //get the random coords that were used by cpu to attack
   let x = coords[0];
   let y = coords[1];
@@ -75,7 +39,97 @@ function renderCPUAttack(p, coords) {
   if (gameboard[y][x] !== "miss") {
     targetCell.textContent = "\u{2717}";
     targetCell.classList.add("hit");
+    targetStatus = "hit";
   } else {
     targetCell.textContent = "\u{26AC}";
+    targetStatus = "missed";
   }
+  // console.log({ targetStatus: targetStatus });
+  return targetStatus;
+}
+
+function playRound(humanPlayer, cell, boardPos) {
+  // console.table(humanPlayer.opponent.gameboard.spaces);
+  // console.log(boardPos);
+  // debugger;
+  //Human attacks CPU
+  let x = Number(cell.id.charAt(0));
+  let y = Number(cell.id.charAt(2));
+  humanPlayer.attack([x, y]);
+  // console.table(humanPlayer.opponent.gameboard.spaces[y][x]);
+  // console.log(boardPos);
+  boardPos = humanPlayer.opponent.gameboard.spaces[y][x];
+  handleAttackFromHuman(humanPlayer, cell, boardPos);
+  // console.table(humanPlayer.opponent.gameboard.spaces);
+}
+
+function handleAttackFromHuman(player, cell, boardPos) {
+  let opponent = player.opponent;
+  let result;
+
+  if (boardPos !== "miss") {
+    markHit(cell);
+    renderSunkShips(opponent);
+    checkWin(opponent.gameboard, result);
+  } else {
+    markMiss(cell);
+    setTimeout(() => {
+      cpuAttacksHuman(opponent, result);
+    }, 500);
+  }
+
+  if (result === "Game over")
+    setTimeout(function () {
+      alert("game over");
+    }, 0);
+}
+
+function markHit(cell) {
+  cell.textContent = "\u{2717}";
+  cell.classList.add("hit");
+}
+
+function markMiss(cell) {
+  cell.textContent = "\u{26AC}";
+}
+
+function checkWin(playerBoard, result) {
+  if (playerBoard.allSunk()) {
+    result = "Game over";
+    return true;
+  } else return false;
+}
+
+function renderSunkShips(player) {
+  let sunkShips = player.gameboard.getSunkShips();
+  sunkShips.forEach((ship) => {
+    //get the coords
+    ship.position.forEach((pos) => {
+      //access the cells with id containing coords
+      let cell = document.getElementById(`${pos[0]},${pos[1]} ${player.name}`);
+      //add class to the cells
+      cell.classList.add("sunk");
+    });
+  });
+}
+
+function cpuAttacksHuman(cpuPlayer, result, targetStatus = "") {
+  do {
+    let cpuAttackCoords = cpuPlayer.randomAttack();
+    targetStatus = renderCPUAttack(cpuPlayer, cpuAttackCoords, targetStatus);
+
+    console.log(targetStatus);
+    if (targetStatus === "missed") return;
+
+    renderSunkShips(cpuPlayer.opponent);
+    let gameOver = checkWin(cpuPlayer.opponent.gameboard, result);
+    if (gameOver !== false) return;
+
+    setTimeout(() => {
+      cpuAttacksHuman(cpuPlayer, result, targetStatus);
+    }, 1000);
+
+    targetStatus = "missed";
+  } while (targetStatus !== "missed");
+  ////when is the game over?
 }

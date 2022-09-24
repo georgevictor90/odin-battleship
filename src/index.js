@@ -4,13 +4,17 @@ import renderGameBoards from "./domStuff/domStuff";
 
 (function init() {
   const newGameDiv = document.querySelector(".new-game");
+  const winner = document.createElement("h1");
+  winner.classList.add("winner", "hidden");
+  newGameDiv.appendChild(winner);
+
   const newGameBtn = document.createElement("button");
   newGameBtn.textContent = "New Game";
   newGameBtn.classList.add("new-game-btn");
   newGameDiv.appendChild(newGameBtn);
 
   const inputDiv = document.createElement("div");
-  inputDiv.classList.add("input-div", "hidden"); ////////////////
+  inputDiv.classList.add("input-div", "hidden");
   const nameInput = document.createElement("input");
   nameInput.classList.add("name-input");
   nameInput.type = "text";
@@ -28,6 +32,10 @@ import renderGameBoards from "./domStuff/domStuff";
   newGameDiv.appendChild(playersH1);
 
   newGameBtn.addEventListener("click", () => {
+    const boards = document.querySelector(".boards");
+    boards.innerHTML = "";
+    winner.classList.add("hidden");
+    nameInput.value = "";
     newGameBtn.classList.toggle("hidden");
     inputDiv.classList.toggle("hidden");
   });

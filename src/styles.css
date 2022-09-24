@@ -47,6 +47,7 @@ h1 {
 }
 
 .new-game-btn {
+  margin-top: 20px;
   font-family: sans-serif;
   font-size: 1rem;
   padding: 1rem 1.5rem;
@@ -64,6 +65,7 @@ h1 {
 }
 
 .input-div {
+  margin-top: 20px;
   /* background-color: palegoldenrod; */
   height: 50px;
   display: flex;

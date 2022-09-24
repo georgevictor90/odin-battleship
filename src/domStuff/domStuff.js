@@ -101,8 +101,15 @@ function checkWin(playerBoard) {
 }
 
 function declareWinner(player) {
+  const newGameBtn = document.querySelector(".new-game-btn");
   const h1 = document.querySelector(".players-h1");
-  h1.textContent = player.name + " wins!";
+  const winner = document.querySelector(".winner");
+  winner.textContent = player.name + " wins!";
+
+  newGameBtn.classList.toggle("hidden");
+  h1.classList.toggle("hidden");
+  winner.classList.toggle("hidden");
+
   const cpuCells = document.querySelectorAll(`[id$=" CPU"]`);
   cpuCells.forEach((cell) => {
     cell.click();

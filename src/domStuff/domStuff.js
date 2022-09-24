@@ -15,11 +15,20 @@ export default function renderGameBoards(players) {
         cell.setAttribute("id", `${iCol},${iRow} ${p.name}`);
         cell.textContent = row[i];
         playerBoard.appendChild(cell);
+
+        // function handleClick(e) {
+        //   // console.log(e);
+        //   playRound(p.opponent, cell, row[i]);
+        // }
+
         if (p.type === "AI") {
-          cell.addEventListener("click", () => {
-            // console.log(row[i]);
-            playRound(p.opponent, cell, row[i]);
-          });
+          cell.addEventListener(
+            "click",
+            () => {
+              playRound(p.opponent, cell, row[i]);
+            },
+            { once: true }
+          );
         }
       }
     });
@@ -27,7 +36,6 @@ export default function renderGameBoards(players) {
 }
 
 function renderCPUAttack(p, coords, targetStatus) {
-  // console.log({ targetStatus: targetStatus });
   //get the random coords that were used by cpu to attack
   let x = coords[0];
   let y = coords[1];
@@ -44,44 +52,37 @@ function renderCPUAttack(p, coords, targetStatus) {
     targetCell.textContent = "\u{26AC}";
     targetStatus = "missed";
   }
-  // console.log({ targetStatus: targetStatus });
   return targetStatus;
 }
 
 function playRound(humanPlayer, cell, boardPos) {
-  // console.table(humanPlayer.opponent.gameboard.spaces);
-  // console.log(boardPos);
-  // debugger;
+  if (
+    checkWin(humanPlayer.gameboard) === true ||
+    checkWin(humanPlayer.opponent.gameboard) === true
+  )
+    return;
   //Human attacks CPU
   let x = Number(cell.id.charAt(0));
   let y = Number(cell.id.charAt(2));
   humanPlayer.attack([x, y]);
-  // console.table(humanPlayer.opponent.gameboard.spaces[y][x]);
-  // console.log(boardPos);
   boardPos = humanPlayer.opponent.gameboard.spaces[y][x];
   handleAttackFromHuman(humanPlayer, cell, boardPos);
-  // console.table(humanPlayer.opponent.gameboard.spaces);
 }
 
 function handleAttackFromHuman(player, cell, boardPos) {
   let opponent = player.opponent;
-  let result;
 
   if (boardPos !== "miss") {
     markHit(cell);
     renderSunkShips(opponent);
-    checkWin(opponent.gameboard, result);
+    let gameover = checkWin(opponent.gameboard);
+    if (gameover) declareWinner(player);
   } else {
     markMiss(cell);
     setTimeout(() => {
-      cpuAttacksHuman(opponent, result);
+      cpuAttacksHuman(opponent);
     }, 500);
   }
-
-  if (result === "Game over")
-    setTimeout(function () {
-      alert("game over");
-    }, 0);
 }
 
 function markHit(cell) {
@@ -93,11 +94,19 @@ function markMiss(cell) {
   cell.textContent = "\u{26AC}";
 }
 
-function checkWin(playerBoard, result) {
+function checkWin(playerBoard) {
   if (playerBoard.allSunk()) {
-    result = "Game over";
     return true;
   } else return false;
+}
+
+function declareWinner(player) {
+  const h1 = document.querySelector(".players-h1");
+  h1.textContent = player.name + " wins!";
+  const cpuCells = document.querySelectorAll(`[id$=" CPU"]`);
+  cpuCells.forEach((cell) => {
+    cell.click();
+  });
 }
 
 function renderSunkShips(player) {
@@ -113,20 +122,19 @@ function renderSunkShips(player) {
   });
 }
 
-function cpuAttacksHuman(cpuPlayer, result, targetStatus = "") {
+function cpuAttacksHuman(cpuPlayer, targetStatus = "") {
   do {
     let cpuAttackCoords = cpuPlayer.randomAttack();
     targetStatus = renderCPUAttack(cpuPlayer, cpuAttackCoords, targetStatus);
 
-    console.log(targetStatus);
     if (targetStatus === "missed") return;
 
     renderSunkShips(cpuPlayer.opponent);
-    let gameOver = checkWin(cpuPlayer.opponent.gameboard, result);
-    if (gameOver !== false) return;
+    let gameOver = checkWin(cpuPlayer.opponent.gameboard);
+    if (gameOver !== false) declareWinner(cpuPlayer);
 
     setTimeout(() => {
-      cpuAttacksHuman(cpuPlayer, result, targetStatus);
+      cpuAttacksHuman(cpuPlayer, targetStatus);
     }, 1000);
 
     targetStatus = "missed";

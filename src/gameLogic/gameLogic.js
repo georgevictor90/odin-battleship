@@ -1,6 +1,13 @@
 import { Player, ComputerPlayer } from "../player/player";
 import shipTypes from "../ship/shipTypes";
 import { getRandomIntInclusive } from "../helpers";
+import {
+  markHit,
+  markMiss,
+  renderSunkShips,
+  renderCPUAttack,
+  declareWinner,
+} from "../domStuff/domStuff";
 
 function placeRandomShips(players) {
   let x, y, z;
@@ -20,7 +27,6 @@ function placeRandomShips(players) {
       p.gameboard.placeShip([x, y], shipTypes[key], orientations[z], p.name);
     }
   });
-  // console.table(players[1].gameboard.spaces);
 }
 
 function makePlayers(name = "Player") {
@@ -65,4 +71,66 @@ function isValidPosition(head, type, orientation, gameboard) {
   return positions.every((p) => gameboard.spaces[p[1]][p[0]] === null);
 }
 
-export { placeRandomShips, makePlayers };
+function playRound(humanPlayer, cell, boardPos) {
+  if (
+    checkWin(humanPlayer.gameboard) === true ||
+    checkWin(humanPlayer.opponent.gameboard) === true
+  )
+    return;
+  //Human attacks CPU
+  let x = Number(cell.id.charAt(0));
+  let y = Number(cell.id.charAt(2));
+  humanPlayer.attack([x, y]);
+  boardPos = humanPlayer.opponent.gameboard.spaces[y][x];
+  handleAttackFromHuman(humanPlayer, cell, boardPos);
+}
+
+function checkWin(playerBoard) {
+  if (playerBoard.allSunk()) {
+    return true;
+  } else return false;
+}
+
+function handleAttackFromHuman(player, cell, boardPos) {
+  let opponent = player.opponent;
+
+  if (boardPos !== "miss") {
+    markHit(cell);
+    renderSunkShips(opponent);
+    let gameover = checkWin(opponent.gameboard);
+    if (gameover) declareWinner(player);
+  } else {
+    markMiss(cell);
+    setTimeout(() => {
+      cpuAttacksHuman(opponent);
+    }, 500);
+  }
+}
+
+function cpuAttacksHuman(cpuPlayer, targetStatus = "") {
+  do {
+    let cpuAttackCoords = cpuPlayer.randomAttack();
+    targetStatus = renderCPUAttack(cpuPlayer, cpuAttackCoords, targetStatus);
+
+    if (targetStatus === "missed") return;
+
+    renderSunkShips(cpuPlayer.opponent);
+    let gameOver = checkWin(cpuPlayer.opponent.gameboard);
+    if (gameOver !== false) declareWinner(cpuPlayer);
+
+    setTimeout(() => {
+      cpuAttacksHuman(cpuPlayer, targetStatus);
+    }, 1000);
+
+    targetStatus = "missed";
+  } while (targetStatus !== "missed");
+  ////when is the game over?
+}
+
+export {
+  placeRandomShips,
+  makePlayers,
+  playRound,
+  checkWin,
+  handleAttackFromHuman,
+};

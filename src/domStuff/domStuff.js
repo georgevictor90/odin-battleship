@@ -1,38 +1,45 @@
+import {
+  makePlayers,
+  placeRandomShips,
+  playRound,
+  checkWin,
+} from "../gameLogic/gameLogic.js";
+
 //render player's gameboards on screen
-export default function renderGameBoards(players) {
+function renderGameBoards(players) {
   players.forEach((p) => {
     const boardsContainer = document.querySelector(".boards");
     const playerBoard = document.createElement("div");
     playerBoard.setAttribute("id", p.name);
     playerBoard.classList.add("player-board");
     boardsContainer.appendChild(playerBoard);
+
     p.gameboard.spaces.forEach((row) => {
-      let iRow = p.gameboard.spaces.indexOf(row);
-      for (let i = 0; i < row.length; i++) {
-        let iCol = i;
-        const cell = document.createElement("div");
-        cell.classList.add("cell");
-        cell.setAttribute("id", `${iCol},${iRow} ${p.name}`);
-        cell.textContent = row[i];
-        playerBoard.appendChild(cell);
-
-        // function handleClick(e) {
-        //   // console.log(e);
-        //   playRound(p.opponent, cell, row[i]);
-        // }
-
-        if (p.type === "AI") {
-          cell.addEventListener(
-            "click",
-            () => {
-              playRound(p.opponent, cell, row[i]);
-            },
-            { once: true }
-          );
-        }
-      }
+      makeGameboardCells(p, row, playerBoard);
     });
   });
+}
+
+function makeGameboardCells(p, row, playerBoard) {
+  let iRow = p.gameboard.spaces.indexOf(row);
+  for (let i = 0; i < row.length; i++) {
+    let iCol = i;
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.setAttribute("id", `${iCol},${iRow} ${p.name}`);
+    cell.textContent = row[i];
+    playerBoard.appendChild(cell);
+
+    if (p.type === "AI") {
+      cell.addEventListener(
+        "click",
+        () => {
+          playRound(p.opponent, cell, row[i]);
+        },
+        { once: true }
+      );
+    }
+  }
 }
 
 function renderCPUAttack(p, coords, targetStatus) {
@@ -55,36 +62,6 @@ function renderCPUAttack(p, coords, targetStatus) {
   return targetStatus;
 }
 
-function playRound(humanPlayer, cell, boardPos) {
-  if (
-    checkWin(humanPlayer.gameboard) === true ||
-    checkWin(humanPlayer.opponent.gameboard) === true
-  )
-    return;
-  //Human attacks CPU
-  let x = Number(cell.id.charAt(0));
-  let y = Number(cell.id.charAt(2));
-  humanPlayer.attack([x, y]);
-  boardPos = humanPlayer.opponent.gameboard.spaces[y][x];
-  handleAttackFromHuman(humanPlayer, cell, boardPos);
-}
-
-function handleAttackFromHuman(player, cell, boardPos) {
-  let opponent = player.opponent;
-
-  if (boardPos !== "miss") {
-    markHit(cell);
-    renderSunkShips(opponent);
-    let gameover = checkWin(opponent.gameboard);
-    if (gameover) declareWinner(player);
-  } else {
-    markMiss(cell);
-    setTimeout(() => {
-      cpuAttacksHuman(opponent);
-    }, 500);
-  }
-}
-
 function markHit(cell) {
   cell.textContent = "\u{2717}";
   cell.classList.add("hit");
@@ -92,12 +69,6 @@ function markHit(cell) {
 
 function markMiss(cell) {
   cell.textContent = "\u{26AC}";
-}
-
-function checkWin(playerBoard) {
-  if (playerBoard.allSunk()) {
-    return true;
-  } else return false;
 }
 
 function declareWinner(player) {
@@ -129,22 +100,61 @@ function renderSunkShips(player) {
   });
 }
 
-function cpuAttacksHuman(cpuPlayer, targetStatus = "") {
-  do {
-    let cpuAttackCoords = cpuPlayer.randomAttack();
-    targetStatus = renderCPUAttack(cpuPlayer, cpuAttackCoords, targetStatus);
+function renderInitialElements() {
+  const newGameDiv = document.querySelector(".new-game");
+  const winner = document.createElement("h1");
+  winner.classList.add("winner", "hidden");
+  newGameDiv.appendChild(winner);
 
-    if (targetStatus === "missed") return;
+  const newGameBtn = document.createElement("button");
+  newGameBtn.textContent = "New Game";
+  newGameBtn.classList.add("new-game-btn");
+  newGameDiv.appendChild(newGameBtn);
 
-    renderSunkShips(cpuPlayer.opponent);
-    let gameOver = checkWin(cpuPlayer.opponent.gameboard);
-    if (gameOver !== false) declareWinner(cpuPlayer);
+  const inputDiv = document.createElement("div");
+  inputDiv.classList.add("input-div", "hidden");
+  const nameInput = document.createElement("input");
+  nameInput.classList.add("name-input");
+  nameInput.type = "text";
+  nameInput.placeholder = "Name";
+  inputDiv.appendChild(nameInput);
+  newGameDiv.appendChild(inputDiv);
 
-    setTimeout(() => {
-      cpuAttacksHuman(cpuPlayer, targetStatus);
-    }, 1000);
+  const goBtn = document.createElement("button");
+  goBtn.textContent = "Start";
+  goBtn.classList.add("go-btn");
+  inputDiv.appendChild(goBtn);
 
-    targetStatus = "missed";
-  } while (targetStatus !== "missed");
-  ////when is the game over?
+  const playersH1 = document.createElement("h1");
+  playersH1.classList.add("players-h1", "hidden");
+  newGameDiv.appendChild(playersH1);
+
+  newGameBtn.addEventListener("click", () => {
+    const boards = document.querySelector(".boards");
+    boards.innerHTML = "";
+    winner.classList.add("hidden");
+    nameInput.value = "";
+    newGameBtn.classList.toggle("hidden");
+    inputDiv.classList.toggle("hidden");
+  });
+
+  goBtn.addEventListener("click", () => {
+    inputDiv.classList.toggle("hidden");
+    playersH1.textContent = `${nameInput.value} vs CPU`;
+    playersH1.classList.toggle("hidden");
+
+    const players = makePlayers("Victor");
+
+    renderGameBoards(players);
+    placeRandomShips(players);
+  });
 }
+
+export {
+  renderInitialElements,
+  markHit,
+  markMiss,
+  renderSunkShips,
+  renderCPUAttack,
+  declareWinner,
+};

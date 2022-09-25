@@ -143,7 +143,7 @@ function renderInitialElements() {
     playersH1.textContent = `${nameInput.value} vs CPU`;
     playersH1.classList.toggle("hidden");
 
-    const players = makePlayers("Victor");
+    const players = makePlayers(nameInput.value);
 
     renderGameBoards(players);
     placeRandomShips(players);

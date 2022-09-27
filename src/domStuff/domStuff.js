@@ -9,14 +9,29 @@ import shipTypes from "../ship/shipTypes.js";
 
 function renderPlaceShipsBoard(players) {
   players.forEach((p) => {
+    let j = 0;
+    const keys = Object.keys(shipTypes);
+
     const placeShipsContainer = document.querySelector(".place-ships");
     const humanPlayerBoard = document.createElement("div");
     humanPlayerBoard.setAttribute("id", p.name);
     humanPlayerBoard.classList.add("player-board");
     placeShipsContainer.appendChild(humanPlayerBoard);
 
-    let j = 0;
-    const keys = Object.keys(shipTypes);
+    const shipDetails = document.createElement("div");
+    shipDetails.classList.add("ship-details");
+    placeShipsContainer.appendChild(shipDetails);
+    const currentShipType = document.createElement("h2");
+    currentShipType.textContent = shipTypes[keys[j]].name;
+    currentShipType.classList.add("current-ship-type");
+
+    shipDetails.appendChild(currentShipType);
+    const orientationBtn = document.createElement("button");
+    orientationBtn.classList.add("orientation-btn");
+    orientationBtn.textContent = "horizontal";
+    shipDetails.appendChild(orientationBtn);
+
+    orientationBtn.addEventListener("click", changeOrientationBtnValue);
 
     p.gameboard.spaces.forEach((row) => {
       makeGameboardCells(p, row, humanPlayerBoard, true);
@@ -26,19 +41,34 @@ function renderPlaceShipsBoard(players) {
 
     cells.forEach((cell) => {
       const cellId = cell.id;
+      let cellCoords = [Number(cellId[0]), Number(cellId[2])];
+
       cell.addEventListener("mouseover", () => {
+        let orientation =
+          document.querySelector(".orientation-btn").textContent;
         if (j > 4) return;
+        let isValid = isValidPosition(
+          cellCoords,
+          shipTypes[keys[j]],
+          document.querySelector(".orientation-btn").textContent,
+          p.gameboard
+        );
+
         // if coords are invalid
-        if (Number(cell.id.charAt(0)) + shipTypes[keys[j]].size > 10) {
+        if (isValid !== true) {
           cell.classList.add("invalid");
           cell.addEventListener("mouseleave", () => {
             cell.classList.remove("invalid");
           });
-
-          //if coords are valid
         } else {
           for (let i = 0; i < shipTypes[keys[j]].size; i++) {
-            const newId = cellId.replace(cellId[0], `${Number(cellId[0]) + i}`);
+            const newId =
+              orientation === "horizontal"
+                ? `${Number(cellId[0]) + i}` + cellId.substring(1)
+                : cellId.substring(0, 2) +
+                  `${Number(cellId[2]) + i}` +
+                  cellId.substring(3);
+
             document.getElementById(newId).classList.add("selected");
             cell.addEventListener("mouseleave", () => {
               document.getElementById(newId).classList.remove("selected");
@@ -50,11 +80,12 @@ function renderPlaceShipsBoard(players) {
       cell.addEventListener("click", () => {
         if (j > 4) return;
         // cell on click
-        let cellCoords = [Number(cellId[0]), Number(cellId[2])];
+
+        // let cellCoords = [Number(cellId[0]), Number(cellId[2])];
         let isValid = isValidPosition(
           cellCoords,
           shipTypes[keys[j]],
-          "horizontal",
+          document.querySelector(".orientation-btn").textContent,
           p.gameboard
         );
         // If checkValidPosition true
@@ -62,7 +93,7 @@ function renderPlaceShipsBoard(players) {
         p.gameboard.placeShip(
           cellCoords,
           shipTypes[keys[j]],
-          "horizontal",
+          document.querySelector(".orientation-btn").textContent,
           p.name
         );
         j++;
@@ -126,6 +157,13 @@ function renderCPUAttack(p, coords, targetStatus) {
     targetStatus = "missed";
   }
   return targetStatus;
+}
+
+function changeOrientationBtnValue() {
+  const btn = document.querySelector(".orientation-btn");
+  btn.textContent === "horizontal"
+    ? (btn.textContent = "vertical")
+    : (btn.textContent = "horizontal");
 }
 
 function markHit(cell) {

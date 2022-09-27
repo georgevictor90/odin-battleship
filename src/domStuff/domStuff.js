@@ -88,7 +88,7 @@ function renderPlaceShipsBoard(players) {
           document.querySelector(".orientation-btn").textContent,
           p.gameboard
         );
-        // If checkValidPosition true
+        // check valid position
         if (isValid !== true) return;
         p.gameboard.placeShip(
           cellCoords,
@@ -97,6 +97,8 @@ function renderPlaceShipsBoard(players) {
           p.name
         );
         j++;
+        document.querySelector(".current-ship-type").textContent =
+          shipTypes[keys[j]].name;
       });
     });
   });

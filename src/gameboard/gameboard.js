@@ -31,7 +31,7 @@ export default class Gameboard {
         } else {
           document
             .getElementById(`${pos[0]},${pos[1]} ${name}`)
-            .classList.toggle("selected");
+            .classList.toggle("confirmed");
         }
       });
     }

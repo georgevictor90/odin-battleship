@@ -3,7 +3,73 @@ import {
   placeRandomShips,
   playRound,
   checkWin,
+  isValidPosition,
 } from "../gameLogic/gameLogic.js";
+import shipTypes from "../ship/shipTypes.js";
+
+function renderPlaceShipsBoard(players) {
+  players.forEach((p) => {
+    const placeShipsContainer = document.querySelector(".place-ships");
+    const humanPlayerBoard = document.createElement("div");
+    humanPlayerBoard.setAttribute("id", p.name);
+    humanPlayerBoard.classList.add("player-board");
+    placeShipsContainer.appendChild(humanPlayerBoard);
+
+    let j = 0;
+    const keys = Object.keys(shipTypes);
+
+    p.gameboard.spaces.forEach((row) => {
+      makeGameboardCells(p, row, humanPlayerBoard, true);
+    });
+
+    const cells = document.querySelectorAll(".cell");
+
+    cells.forEach((cell) => {
+      const cellId = cell.id;
+      cell.addEventListener("mouseover", () => {
+        if (j > 4) return;
+        // if coords are invalid
+        if (Number(cell.id.charAt(0)) + shipTypes[keys[j]].size > 10) {
+          cell.classList.add("invalid");
+          cell.addEventListener("mouseleave", () => {
+            cell.classList.remove("invalid");
+          });
+
+          //if coords are valid
+        } else {
+          for (let i = 0; i < shipTypes[keys[j]].size; i++) {
+            const newId = cellId.replace(cellId[0], `${Number(cellId[0]) + i}`);
+            document.getElementById(newId).classList.add("selected");
+            cell.addEventListener("mouseleave", () => {
+              document.getElementById(newId).classList.remove("selected");
+            });
+          }
+        }
+      });
+
+      cell.addEventListener("click", () => {
+        if (j > 4) return;
+        // cell on click
+        let cellCoords = [Number(cellId[0]), Number(cellId[2])];
+        let isValid = isValidPosition(
+          cellCoords,
+          shipTypes[keys[j]],
+          "horizontal",
+          p.gameboard
+        );
+        // If checkValidPosition true
+        if (isValid !== true) return;
+        p.gameboard.placeShip(
+          cellCoords,
+          shipTypes[keys[j]],
+          "horizontal",
+          p.name
+        );
+        j++;
+      });
+    });
+  });
+}
 
 //render player's gameboards on screen
 function renderGameBoards(players) {
@@ -20,7 +86,7 @@ function renderGameBoards(players) {
   });
 }
 
-function makeGameboardCells(p, row, playerBoard) {
+function makeGameboardCells(p, row, playerBoard, placeShipBoard) {
   let iRow = p.gameboard.spaces.indexOf(row);
   for (let i = 0; i < row.length; i++) {
     let iCol = i;
@@ -144,9 +210,10 @@ function renderInitialElements() {
     playersH1.classList.toggle("hidden");
 
     const players = makePlayers(nameInput.value);
+    renderPlaceShipsBoard(players.slice(0, 1));
 
-    renderGameBoards(players);
-    placeRandomShips(players);
+    // renderGameBoards(players);
+    // placeRandomShips(players);
   });
 }
 

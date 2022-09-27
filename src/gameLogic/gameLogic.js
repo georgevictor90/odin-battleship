@@ -133,4 +133,5 @@ export {
   playRound,
   checkWin,
   handleAttackFromHuman,
+  isValidPosition,
 };

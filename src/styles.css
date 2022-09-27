@@ -8,13 +8,22 @@ h1 {
   text-align: center;
 }
 
-.boards {
+.boards,
+.place-ships {
   margin-top: 4rem;
   display: flex;
   flex-direction: row;
   gap: 50px;
   width: 100%;
   justify-content: center;
+}
+
+.invalid {
+  background-color: red !important;
+}
+
+.confirmed {
+  background-color: purple !important;
 }
 
 .player-board {
@@ -28,11 +37,9 @@ h1 {
 }
 
 .cell {
-  /* padding: 8px; */
   width: 30px;
   height: 30px;
   background-color: white;
-  /* padding: 15px; */
   text-align: center;
   line-height: 30px;
 }
@@ -66,7 +73,6 @@ h1 {
 
 .input-div {
   margin-top: 20px;
-  /* background-color: palegoldenrod; */
   height: 50px;
   display: flex;
   justify-content: center;
@@ -102,7 +108,6 @@ h1 {
 }
 
 .hit {
-  /* background-color: red; */
   color: red;
   font-size: 1.5rem;
 }

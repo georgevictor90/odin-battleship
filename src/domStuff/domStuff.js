@@ -2,125 +2,35 @@ import {
   makePlayers,
   placeRandomShips,
   playRound,
-  checkWin,
   isValidPosition,
 } from "../gameLogic/gameLogic.js";
 import shipTypes from "../ship/shipTypes.js";
 
-function renderPlaceShipsBoard(players) {
-  players.forEach((p) => {
-    let j = 0;
-    const keys = Object.keys(shipTypes);
-
-    const placeShipsContainer = document.querySelector(".place-ships");
-    const humanPlayerBoard = document.createElement("div");
-    humanPlayerBoard.setAttribute("id", p.name);
-    humanPlayerBoard.classList.add("player-board");
-    placeShipsContainer.appendChild(humanPlayerBoard);
-
-    const shipDetails = document.createElement("div");
-    shipDetails.classList.add("ship-details");
-    placeShipsContainer.appendChild(shipDetails);
-    const currentShipType = document.createElement("h2");
-    currentShipType.textContent = shipTypes[keys[j]].name;
-    currentShipType.classList.add("current-ship-type");
-
-    shipDetails.appendChild(currentShipType);
-    const orientationBtn = document.createElement("button");
-    orientationBtn.classList.add("orientation-btn");
-    orientationBtn.textContent = "horizontal";
-    shipDetails.appendChild(orientationBtn);
-
-    orientationBtn.addEventListener("click", changeOrientationBtnValue);
-
-    p.gameboard.spaces.forEach((row) => {
-      makeGameboardCells(p, row, humanPlayerBoard, true);
-    });
-
-    const cells = document.querySelectorAll(".cell");
-
-    cells.forEach((cell) => {
-      const cellId = cell.id;
-      let cellCoords = [Number(cellId[0]), Number(cellId[2])];
-
-      cell.addEventListener("mouseover", () => {
-        let orientation =
-          document.querySelector(".orientation-btn").textContent;
-        if (j > 4) return;
-        let isValid = isValidPosition(
-          cellCoords,
-          shipTypes[keys[j]],
-          document.querySelector(".orientation-btn").textContent,
-          p.gameboard
-        );
-
-        // if coords are invalid
-        if (isValid !== true) {
-          cell.classList.add("invalid");
-          cell.addEventListener("mouseleave", () => {
-            cell.classList.remove("invalid");
-          });
-        } else {
-          for (let i = 0; i < shipTypes[keys[j]].size; i++) {
-            const newId =
-              orientation === "horizontal"
-                ? `${Number(cellId[0]) + i}` + cellId.substring(1)
-                : cellId.substring(0, 2) +
-                  `${Number(cellId[2]) + i}` +
-                  cellId.substring(3);
-
-            document.getElementById(newId).classList.add("selected");
-            cell.addEventListener("mouseleave", () => {
-              document.getElementById(newId).classList.remove("selected");
-            });
-          }
-        }
-      });
-
-      cell.addEventListener("click", () => {
-        if (j > 4) return;
-        // cell on click
-
-        // let cellCoords = [Number(cellId[0]), Number(cellId[2])];
-        let isValid = isValidPosition(
-          cellCoords,
-          shipTypes[keys[j]],
-          document.querySelector(".orientation-btn").textContent,
-          p.gameboard
-        );
-        // check valid position
-        if (isValid !== true) return;
-        p.gameboard.placeShip(
-          cellCoords,
-          shipTypes[keys[j]],
-          document.querySelector(".orientation-btn").textContent,
-          p.name
-        );
-        j++;
-        document.querySelector(".current-ship-type").textContent =
-          shipTypes[keys[j]].name;
-      });
-    });
-  });
-}
-
 //render player's gameboards on screen
-function renderGameBoards(players) {
-  players.forEach((p) => {
-    const boardsContainer = document.querySelector(".boards");
+
+function renderGameBoards(playersArray) {
+  const boardsContainer = document.querySelector(".boards");
+
+  playersArray.forEach((p) => {
     const playerBoard = document.createElement("div");
-    playerBoard.setAttribute("id", p.name);
+    playerBoard.setAttribute("id", p.type);
     playerBoard.classList.add("player-board");
     boardsContainer.appendChild(playerBoard);
+    p.type === "human"
+      ? renderShipDetails()
+      : playerBoard.classList.toggle("hidden");
 
     p.gameboard.spaces.forEach((row) => {
       makeGameboardCells(p, row, playerBoard);
     });
   });
+  addEventListenersForHumanCells(playersArray);
 }
 
-function makeGameboardCells(p, row, playerBoard, placeShipBoard) {
+function makeGameboardCells(p, row, playerBoard) {
+  //index of row in gameboard.spaces
   let iRow = p.gameboard.spaces.indexOf(row);
+  //loop through each row's elements
   for (let i = 0; i < row.length; i++) {
     let iCol = i;
     const cell = document.createElement("div");
@@ -139,6 +49,107 @@ function makeGameboardCells(p, row, playerBoard, placeShipBoard) {
       );
     }
   }
+}
+
+function addEventListenersForHumanCells(players) {
+  let j = 0;
+  const keys = Object.keys(shipTypes);
+
+  const cells = Array.from(document.getElementById("human").children);
+
+  cells.forEach((cell) => {
+    const cellId = cell.id;
+    let cellCoords = [Number(cellId[0]), Number(cellId[2])];
+
+    cell.addEventListener("mouseover", () => {
+      let orientation = document.querySelector(".orientation-btn").textContent;
+      if (j > 4) return;
+      let isValid = isValidPosition(
+        cellCoords,
+        shipTypes[keys[j]],
+        document.querySelector(".orientation-btn").textContent,
+        players[0].gameboard
+      );
+
+      // if coords are invalid
+      if (isValid !== true) {
+        cell.classList.add("invalid");
+        cell.addEventListener("mouseleave", () => {
+          cell.classList.remove("invalid");
+        });
+      } else {
+        for (let i = 0; i < shipTypes[keys[j]].size; i++) {
+          const newId =
+            orientation === "horizontal"
+              ? `${Number(cellId[0]) + i}` + cellId.substring(1)
+              : cellId.substring(0, 2) +
+                `${Number(cellId[2]) + i}` +
+                cellId.substring(3);
+
+          document.getElementById(newId).classList.add("selected");
+          cell.addEventListener("mouseleave", () => {
+            document.getElementById(newId).classList.remove("selected");
+          });
+        }
+      }
+    });
+
+    cell.addEventListener("click", () => {
+      if (j > 4) return;
+      // cell on click
+
+      // let cellCoords = [Number(cellId[0]), Number(cellId[2])];
+      let isValid = isValidPosition(
+        cellCoords,
+        shipTypes[keys[j]],
+        document.querySelector(".orientation-btn").textContent,
+        players[0].gameboard
+      );
+      // check valid position
+      if (isValid !== true) return;
+      players[0].gameboard.placeShip(
+        cellCoords,
+        shipTypes[keys[j]],
+        document.querySelector(".orientation-btn").textContent,
+        players[0].name
+      );
+      j++;
+      if (j < 5) {
+        document.querySelector(".current-ship-type").textContent =
+          shipTypes[keys[j]].name;
+      } else {
+        const startGameBtn = document.createElement("button");
+        startGameBtn.textContent = "GO";
+        document.querySelector(".ship-details").appendChild(startGameBtn);
+        document.querySelector(".current-ship-type").classList.toggle("hidden");
+        document.querySelector(".orientation-btn").classList.toggle("hidden");
+        startGameBtn.addEventListener("click", () => {
+          document.querySelector(".ship-details").classList.toggle("hidden");
+          document.getElementById("AI").classList.toggle("hidden");
+        });
+      }
+    });
+  });
+}
+
+function renderShipDetails() {
+  const keys = Object.keys(shipTypes);
+  const boardsContainer = document.querySelector(".boards");
+  const shipDetails = document.createElement("div");
+  shipDetails.classList.add("ship-details");
+  boardsContainer.appendChild(shipDetails);
+
+  const currentShipType = document.createElement("h2");
+  currentShipType.textContent = shipTypes[keys[0]].name;
+  currentShipType.classList.add("current-ship-type");
+  shipDetails.appendChild(currentShipType);
+
+  const orientationBtn = document.createElement("button");
+  orientationBtn.classList.add("orientation-btn");
+  orientationBtn.textContent = "horizontal";
+  shipDetails.appendChild(orientationBtn);
+
+  orientationBtn.addEventListener("click", changeOrientationBtnValue);
 }
 
 function renderCPUAttack(p, coords, targetStatus) {
@@ -250,10 +261,10 @@ function renderInitialElements() {
     playersH1.classList.toggle("hidden");
 
     const players = makePlayers(nameInput.value);
-    renderPlaceShipsBoard(players.slice(0, 1));
+    // renderPlaceShipsBoard(players.slice(0, 1));
 
-    // renderGameBoards(players);
-    // placeRandomShips(players);
+    renderGameBoards(players);
+    placeRandomShips(players.slice(1));
   });
 }
 

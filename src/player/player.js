@@ -31,10 +31,11 @@ export class ComputerPlayer extends Player {
       this.opponent.gameboard.spaces[y][x] === "miss" ||
       (this.opponent.gameboard.spaces[y][x] !== null &&
         this.opponent.gameboard.spaces[y][x].includes("hit"))
-    )
+    ) {
       this.#getRandomCoords(result);
-
-    result.push(x, y);
+    } else {
+      result.push(x, y);
+    }
     return result;
   }
 

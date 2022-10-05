@@ -160,6 +160,7 @@ function renderCPUAttack(p, coords, targetStatus) {
   let gameboard = p.opponent.gameboard.spaces;
   //   //get the cell with id of coords and player name
   let targetCell = document.getElementById(`${x},${y} ${name}`);
+  targetCell.classList.toggle("blink");
   //   //change its text content
   if (gameboard[y][x] !== "miss") {
     targetCell.textContent = "\u{2717}";

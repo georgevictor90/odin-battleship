@@ -102,29 +102,127 @@ function handleAttackFromHuman(player, cell, boardPos) {
   } else {
     markMiss(cell);
     setTimeout(() => {
-      cpuAttacksHuman(opponent);
-    }, 500);
+      cpuAttack(opponent);
+      // cpuAttacksHuman(opponent);
+    }, 1000);
+  }
+}
+///////////////////////////////////////////////////
+
+// function cpuAttacksHuman(cpuPlayer, targetStatus = "") {
+//   do {
+//     let cpuAttackCoords = cpuPlayer.randomAttack();
+//     targetStatus = renderCPUAttack(cpuPlayer, cpuAttackCoords, targetStatus);
+
+//     if (targetStatus === "missed") return;
+
+//     renderSunkShips(cpuPlayer.opponent);
+//     let gameOver = checkWin(cpuPlayer.opponent.gameboard);
+//     if (gameOver !== false) declareWinner(cpuPlayer);
+
+//     setTimeout(() => {
+//       cpuAttacksHuman(cpuPlayer, targetStatus);
+//     }, 1000);
+
+//     targetStatus = "missed";
+//   } while (targetStatus !== "missed");
+// }
+
+///////////////////////////////////////////////////
+
+let visited = [];
+let stack = [];
+let hitCoords = [];
+
+function cpuAttack(cpuPlayer) {
+  let humanBoard = cpuPlayer.opponent.gameboard;
+
+  if (hitCoords.length === 0) {
+    hunt(cpuPlayer, humanBoard);
+  } else {
+    target(cpuPlayer, humanBoard);
   }
 }
 
-function cpuAttacksHuman(cpuPlayer, targetStatus = "") {
-  do {
-    let cpuAttackCoords = cpuPlayer.randomAttack();
-    targetStatus = renderCPUAttack(cpuPlayer, cpuAttackCoords, targetStatus);
+function target(cpuPlayer, humanBoard, targetStatus = "") {
+  if (stack.length === 0) {
+    addAdjacentsToStack();
+  }
+  let newTarget = stack.pop();
+  cpuPlayer.attack(newTarget);
+  visited.push(newTarget.toString());
+  targetStatus = renderCPUAttack(cpuPlayer, newTarget, targetStatus);
 
-    if (targetStatus === "missed") return;
+  if (targetStatus === "missed") return;
+  hitCoords = newTarget;
+  handleHit(cpuPlayer, humanBoard, newTarget);
+}
 
-    renderSunkShips(cpuPlayer.opponent);
-    let gameOver = checkWin(cpuPlayer.opponent.gameboard);
-    if (gameOver !== false) declareWinner(cpuPlayer);
+function addAdjacentsToStack() {
+  //get adjacents/
+  let x = hitCoords[0];
+  let y = hitCoords[1];
+  let adjacents = [
+    [x + 1, y],
+    [x - 1, y],
+    [x, y + 1],
+    [x, y - 1],
+  ];
+  //check if adjacents outside board
+  adjacents.forEach((coord) => {
+    coord.forEach((index) => {
+      if (index < 0 || index > 9) {
+        // remove coord from adjacents
+        let i = adjacents.indexOf(coord);
+        adjacents.splice(i, 1);
+      }
+    });
+  });
+  //if not visited already, push to stack
+  adjacents.forEach((coord) => {
+    if (visited.includes(coord.toString())) return;
+    stack.push(coord);
+  });
+}
 
-    setTimeout(() => {
-      cpuAttacksHuman(cpuPlayer, targetStatus);
-    }, 1000);
+function hunt(cpuPlayer, humanBoard, targetStatus = "") {
+  let coords = cpuPlayer.randomAttack();
+  visited.push(coords.toString());
+  targetStatus = renderCPUAttack(cpuPlayer, coords, targetStatus);
+  if (targetStatus === "missed") return;
+  hitCoords = coords;
+  handleHit(cpuPlayer, humanBoard);
+}
 
-    targetStatus = "missed";
-  } while (targetStatus !== "missed");
-  ////when is the game over?
+function resetVariables() {
+  visited = [];
+  stack = [];
+  hitCoords = [];
+}
+
+function handleHit(cpuPlayer, humanBoard) {
+  renderSunkShips(cpuPlayer.opponent);
+  if (checkWin(humanBoard) === true) {
+    debugger;
+    resetVariables();
+    declareWinner(cpuPlayer);
+    return;
+  }
+  addAdjacentsToStack();
+  //get ship
+  let shipInitial = humanBoard.spaces[hitCoords[1]][hitCoords[0]].charAt(0);
+
+  let ship = humanBoard.ships.find(
+    (s) => s.name.charAt(0) === shipInitial.toLowerCase()
+  );
+
+  //is it sunk?
+  if (ship.isSunk() === true) {
+    //if yes empty stack and clear hitCoord
+    stack = [];
+    hitCoords = [];
+  }
+  cpuAttack(cpuPlayer);
 }
 
 export {

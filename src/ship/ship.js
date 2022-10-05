@@ -23,9 +23,7 @@ export default class Ship {
   }
 
   isSunk() {
-    if (this.position.length !== this.hits.length) {
-      return false;
-    }
+    if (this.position.length !== this.hits.length) return false;
     return true;
   }
 

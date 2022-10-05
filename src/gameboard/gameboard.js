@@ -39,12 +39,13 @@ export default class Gameboard {
     this.handleReservedSpaces(ship);
   }
 
-  handleReservedSpaces(ship) {
+  handleReservedSpaces(ship, player = "human") {
     let unfiltered = this.unfilteredReservedSpaces(
       ship.position,
       ship.orientation
     );
     let filtered = this.filterReserved(unfiltered);
+    if (player === "cpu") return filtered;
     this.markReservedOnGameboard(filtered);
   }
 

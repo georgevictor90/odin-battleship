@@ -18,21 +18,22 @@ export class ComputerPlayer extends Player {
   name = "CPU";
   type = "AI";
 
-  randomAttack() {
-    let coords = this.#getRandomCoords();
+  randomAttack(visited) {
+    let coords = this.#getRandomCoords(visited);
     this.attack(coords);
     return [...coords];
   }
 
-  #getRandomCoords(result = []) {
+  #getRandomCoords(visited = [], result = []) {
     let x = this.#getRandomIntInclusive(0, 9);
     let y = this.#getRandomIntInclusive(0, 9);
     if (
+      (visited.length > 0 && visited.includes([x, y].toString())) ||
       this.opponent.gameboard.spaces[y][x] === "miss" ||
       (this.opponent.gameboard.spaces[y][x] !== null &&
         this.opponent.gameboard.spaces[y][x].includes("hit"))
     ) {
-      this.#getRandomCoords(result);
+      this.#getRandomCoords(visited, result);
     } else {
       result.push(x, y);
     }

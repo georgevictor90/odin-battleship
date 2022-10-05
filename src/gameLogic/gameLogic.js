@@ -103,11 +103,9 @@ function handleAttackFromHuman(player, cell, boardPos) {
     markMiss(cell);
     setTimeout(() => {
       cpuAttack(opponent);
-      // cpuAttacksHuman(opponent);
     }, 1000);
   }
 }
-///////////////////////////////////////////////////
 
 // function cpuAttacksHuman(cpuPlayer, targetStatus = "") {
 //   do {
@@ -128,11 +126,14 @@ function handleAttackFromHuman(player, cell, boardPos) {
 //   } while (targetStatus !== "missed");
 // }
 
-///////////////////////////////////////////////////
-
+let orientation = "";
 let visited = [];
 let stack = [];
 let hitCoords = [];
+const adjacentsByOrientation = {
+  horizontal: [],
+  vertical: [],
+};
 
 function cpuAttack(cpuPlayer) {
   let humanBoard = cpuPlayer.opponent.gameboard;
@@ -154,20 +155,35 @@ function target(cpuPlayer, humanBoard, targetStatus = "") {
   targetStatus = renderCPUAttack(cpuPlayer, newTarget, targetStatus);
 
   if (targetStatus === "missed") return;
-  hitCoords = newTarget;
   handleHit(cpuPlayer, humanBoard, newTarget);
 }
 
 function addAdjacentsToStack() {
-  //get adjacents/
   let x = hitCoords[0];
   let y = hitCoords[1];
-  let adjacents = [
-    [x + 1, y],
-    [x - 1, y],
-    [x, y + 1],
-    [x, y - 1],
-  ];
+  let adjacents = [];
+
+  if (orientation === "horizontal") {
+    adjacents = [
+      [x + 1, y],
+      [x - 1, y],
+    ];
+  }
+  if (orientation === "vertical") {
+    adjacents = [
+      [x, y + 1],
+      [x, y - 1],
+    ];
+  }
+  if (orientation === "") {
+    adjacents = [
+      [x + 1, y],
+      [x - 1, y],
+      [x, y - 1],
+      [x, y + 1],
+    ];
+  }
+
   //check if adjacents outside board
   adjacents.forEach((coord) => {
     coord.forEach((index) => {
@@ -178,32 +194,80 @@ function addAdjacentsToStack() {
       }
     });
   });
+
   //if not visited already, push to stack
   adjacents.forEach((coord) => {
     if (visited.includes(coord.toString())) return;
+    if (coord[0] === x) {
+      adjacentsByOrientation.vertical.push(coord.toString());
+    } else if (coord[1] === y) {
+      adjacentsByOrientation.horizontal.push(coord.toString());
+    }
+
     stack.push(coord);
   });
 }
 
 function hunt(cpuPlayer, humanBoard, targetStatus = "") {
-  let coords = cpuPlayer.randomAttack();
+  let coords = cpuPlayer.randomAttack(visited);
   visited.push(coords.toString());
   targetStatus = renderCPUAttack(cpuPlayer, coords, targetStatus);
   if (targetStatus === "missed") return;
-  hitCoords = coords;
-  handleHit(cpuPlayer, humanBoard);
+  handleHit(cpuPlayer, humanBoard, coords);
 }
 
 function resetVariables() {
   visited = [];
   stack = [];
   hitCoords = [];
+  orientation = "";
 }
 
-function handleHit(cpuPlayer, humanBoard) {
+function handleHit(cpuPlayer, humanBoard, coords) {
+  if (coords[0] === hitCoords[0]) {
+    orientation = "vertical";
+  } else if (coords[1] === hitCoords[1]) {
+    orientation = "horizontal";
+  }
+
+  if (orientation === "horizontal") {
+    //remove vertical adjacents from stack
+    stack.forEach((item) => {
+      if (coords[1] !== item[1]) {
+        let i = stack.indexOf(item);
+        stack.slice(i, 1);
+      }
+    });
+  } else if (orientation === "vertical") {
+    //remove horizontal adjacents from stack
+    stack.forEach((item) => {
+      if (coords[0] !== item[0]) {
+        let i = stack.indexOf(item);
+        stack.slice(i, 1);
+      }
+    });
+  }
+  hitCoords = coords;
+
+  let keys = Object.keys(adjacentsByOrientation);
+  keys.forEach((key) => {
+    if (adjacentsByOrientation[key].includes(hitCoords.toString())) {
+      let index = keys.indexOf(key);
+      keys.splice(index, 1);
+    }
+  });
+
+  adjacentsByOrientation[keys[0]].forEach((adj) => {
+    stack.forEach((coord) => {
+      if (adj[0] === coord[0] && adj[1] === coord[1]) {
+        stack.splice(stack.indexOf(coord), 1);
+      }
+    });
+  });
+
+  /////
   renderSunkShips(cpuPlayer.opponent);
   if (checkWin(humanBoard) === true) {
-    debugger;
     resetVariables();
     declareWinner(cpuPlayer);
     return;
@@ -221,8 +285,16 @@ function handleHit(cpuPlayer, humanBoard) {
     //if yes empty stack and clear hitCoord
     stack = [];
     hitCoords = [];
+    orientation = "";
+    let reserved = cpuPlayer.opponent.gameboard.handleReservedSpaces(
+      ship,
+      "cpu"
+    );
+    reserved.forEach((space) => visited.push(space.toString()));
   }
-  cpuAttack(cpuPlayer);
+  setTimeout(() => {
+    cpuAttack(cpuPlayer);
+  }, 1000);
 }
 
 export {
